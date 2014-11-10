@@ -89,16 +89,57 @@ WSGI_APPLICATION = 'System.wsgi.application'
  #       'PORT': '3306',
  #   }
 #}
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'campoale_app',
-        'USER': 'campoale_bk',
-        'PASSWORD': 'JU]VvoM_TyC0',
-        'HOST': 'campoalegrealimentos.com.mx',
-        'PORT': '3306',
-    }
-}
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.mysql',
+#        'NAME': 'campoale_app',
+#        'USER': 'campoale_bk',
+#        'PASSWORD': 'JU]VvoM_TyC0',
+#        'HOST': 'campoalegrealimentos.com.mx',
+#        'PORT': '3306',
+#    }
+#}
+
+import dj_database_url
+DATABASES['default'] =  dj_database_url.config()
+
+# Honor the 'X-Forwarded-Proto' header for request.is_secure()
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+
+# Register database schemes in URLs.
+urlparse.uses_netloc.append('mysql')
+
+try:
+
+    # Check to make sure DATABASES is set in settings.py file.
+    # If not default to {}
+
+    if 'DATABASES' not in locals():
+        DATABASES = {}
+
+    if 'DATABASE_URL' in os.environ:
+        url = urlparse.urlparse(os.environ['DATABASE_URL'])
+
+        # Ensure default database exists.
+        DATABASES['default'] = DATABASES.get('default', {})
+
+        # Update with environment configuration.
+        DATABASES['default'].update({
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': url.path[1:],
+            'USER': url.username,
+            'PASSWORD': url.password,
+            'HOST': url.hostname,
+            'PORT': url.port,
+        })
+
+
+        if url.scheme == 'mysql':
+            DATABASES['default']['ENGINE'] = 'django.db.backends.mysql'
+except Exception:
+    print 'Unexpected error:', sys.exc_info()
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
